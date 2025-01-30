@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  zookeeper_jsf:
+    image: bitnami/zookeeper:latest
+    volumes:
+      - zk_data_jsf:/var/lib/zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOO_ENABLE_AUTH: true
+      ZOOKEEPER_USER: root
+      ZOOKEEPER_PASSWORD: admin
+      ALLOW_ANONYMOUS_LOGIN: yes
+    ports:
+      - 2181:2181
+    networks:
+      - red_jsf
+
+  kafka_broker_jsf:
+    image: bitnami/kafka:latest
+    user: root
+    volumes:
+      - kafka_data_jsf:/var/lib/kafka/data
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper_jsf:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka_broker_jsf:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ZOOKEEPER_CONNECTION_STRING: zookeeper_jsf:2181
+      KAFKA_ZOOKEEPER_PASSWORD: admin
+    ports:
+      - 9092:9092
+    networks:
+      - red_jsf
+    depends_on:
+      - zookeeper_jsf
+
+  kafka-ui_jsf:
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "Kafka Cluster"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka_broker_jsf:9092"
+      KAFKA_CLUSTERS_0_ZOOKEEPERS: "zookeeper_jsf:2181"
+      KAFKA_CLUSTERS_0_SECURITYPROTOCOL: "PLAINTEXT"
+      KAFKA_CLUSTERS_0_SASLMECHANISM: "PLAIN"
+    ports:
+      - 9090:8080
+    depends_on:
+      - kafka_broker_jsf
+    networks:
+      - red_jsf
+volumes:
+  kafka_data_jsf:
+  zk_data_jsf:
+networks:
+  red_jsf:
+    external: true
+  
