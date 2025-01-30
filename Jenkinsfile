@@ -6,7 +6,7 @@ pipeline {
             steps {
                 script {
                     // Ejecutar docker-compose para levantar los servicios
-                    sh 'docker-compose -f docker-compose.yml up -d'
+                    sh 'docker compose -f docker-compose.yml up -d'
                 }
             }
         }
@@ -49,7 +49,7 @@ pipeline {
     post {
         always {
             // Detener y eliminar los contenedores
-            sh 'docker-compose -f docker-compose.yml down'
+            sh 'docker compose -f docker-compose.yml down'
         }
     }
 }
